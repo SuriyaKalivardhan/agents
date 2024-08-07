@@ -42,7 +42,7 @@ az storage account create -n $storagename --public-network-access Disabled
 storageid=$(az storage account show -n $storagename --query id -o tsv)
 
 az role assignment create --role "Storage Blob Data Contributor" --assignee-object-id $umioid --assignee-principal-type ServicePrincipal --scope $storageid
-
+#az role assignment create --role "Contributor" --assignee-object-id $umioid --assignee-principal-type ServicePrincipal --scope $resourcegroup
 az network vnet create -n $vnetname --address-prefix 10.0.0.0/16
 
 az network nsg create -n $computensg
@@ -73,3 +73,14 @@ az network private-endpoint create -n $storagepename --vnet-name $vnetname --sub
 az network private-dns zone create --name privatelink.blob.core.windows.net
 az network private-dns link vnet create --zone-name privatelink.blob.core.windows.net --name privatevnetlink --virtual-network $vnetname --registration-enabled false
 az network private-endpoint dns-zone-group create --endpoint-name $storagepename --name myzonegroup --private-dns-zone privatelink.blob.core.windows.net --zone-name privatelink.blob.core.windows.net
+
+
+az network nsg create -n $acansg
+az network nsg rule create --nsg-name $acansg -n AllowCorpInbound --priority 4094  --access Allow --protocol Tcp --source-address-prefixes CorpNetPublic --destination-address-prefixes '*' --destination-port-ranges 22 80 8080 443 --direction Inbound
+az network nsg rule create --nsg-name $acansg -n DenyInternetInbound --priority 4095  --access Deny --protocol '*' --source-address-prefixes Internet --destination-address-prefixes '*' --destination-port-ranges '*' --direction Inbound
+az network nsg rule create --nsg-name $acansg -n DenyInternetOutbound --priority 4096  --access Deny --protocol '*' --source-address-prefixes '*' --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound
+acansgid=$(az network nsg show -n $acansg --query id -o tsv)
+
+az network vnet subnet create --vnet-name $vnetname -n $acasubnet --address-prefixes 10.0.2.0/24 --nsg $acansg --delegations Microsoft.App/environments
+acasubnetid=$(az network vnet subnet show --vnet-name $vnetname -n $acasubnet --query id -o tsv)
+echo $acasubnetid
