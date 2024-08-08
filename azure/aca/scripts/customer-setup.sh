@@ -61,6 +61,7 @@ computesubnetid=$(az network vnet subnet show --vnet-name $vnetname -n $computes
 
 #https://learn.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest#az-vm-create
 az vm create -n $computevm --image Ubuntu2204 --admin-username $username --ssh-key-value ~/.ssh/id_rsa.pub --public-ip-sku Standard --nsg "" --subnet $computesubnetid --assign-identity $umiid
+computepublicip=$(az network public-ip list | jq -r .[].ipAddress)
 
 az network nsg create -n $pensg
 az network nsg rule create --nsg-name $pensg -n DenyInternetInbound --priority 4095  --access Deny --protocol '*' --source-address-prefixes Internet --destination-address-prefixes '*' --destination-port-ranges '*' --direction Inbound
@@ -85,6 +86,7 @@ az network vnet subnet create --vnet-name $vnetname -n $acasubnet --address-pref
 acasubnetid=$(az network vnet subnet show --vnet-name $vnetname -n $acasubnet --query id -o tsv)
 
 echo location=$location
+echo computepublicip=$computepublicip
 echo customerumi=$umiid
 echo customerumiclientid=$umiclientid
 echo customerstoragename=$storagename
