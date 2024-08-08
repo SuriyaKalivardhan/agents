@@ -1,22 +1,40 @@
-#nslookup suriyak0customerstr.blob.core.windows.net
-curl -sL https://aka.ms/InstallAzureCLIDeb -y | sudo bash
-sudo apt-get install tcptraceroute bc -y
+#Replace the hostname and target resource/resourceid appropriately with the customer-setup.sh generated resources
+location=eastus2euap
+customerumi=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-customer/providers/Microsoft.ManagedIdentity/userAssignedIdentities/customer-umi
+customerumiclientid=e5303cce-e5e9-4ba8-82a9-490404ea011e
+customerstoragename=suriyak0customerstr
+
+sub=$(cut -d'/' -f3 <<<$customerumi)
+rg=$(cut -d'/' -f5 <<<$customerumi)
+customercontainer=embedctr
+customerblob=embedblob
+
+sudo apt-get update -y
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+sudo apt-get install tcptraceroute bc jq pip -y
 wget http://www.vdberg.org/~richard/tcpping
 sudo cp tcpping /usr/bin
 sudo chmod 755 /usr/bin/tcpping
-#nslookup suriyak0customerstr.blob.core.windows.net
-#tcpping suriyak0customerstr.blob.core.windows.net 80
-az login --identity -u /subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-customer/providers/Microsoft.ManagedIdentity/userAssignedIdentities/suriyak-customer-umi
+#nslookup $customerstoragename.blob.core.windows.net
+#tcpping $customerstoragename.blob.core.windows.net 80
 
-az account set -s ea4faa5b-5e44-4236-91f6-5483d5b17d14
-az configure -d subscription=ea4faa5b-5e44-4236-91f6-5483d5b17d14 group=suriyak-customer location=eastus2euap
-az storage container create --account-name suriyak0customerstr -n embedctr --auth-mode login
-#vi /tmp/embedblob.json
-az storage blob upload -f /tmp/embedblob.json --account-name suriyak0customerstr --container-name embedctr --auth-mode login -n embedblob
-az account get-access-token --resource https://suriyak0customerstr.blob.core.windows.net
-curl https://suriyak0customerstr.blob.core.windows.net/embedctr/embedblob -H "Authorization: Bearer <jwt token>" -H "x-ms-version:2020-04-08"
+az login --identity -u $customerumi
+az account set -s $sub
+az configure -d subscription=$sub group=$rg location=$location
 
-#wget https://github.com/SuriyaKalivardhan/extnpoc/blob/main/SimpleServer/app.py
-#pip install -r https://github.com/SuriyaKalivardhan/extnpoc/blob/main/requirements.txt
+echo "[0.54788036 0.52410722 0.27516717 0.56332735 0.99479976 0.32912522 0.17970737 0.77275429 0.16931099 0.27149482 0.55468555 0.06965549]" > /tmp/$customerblob.json
+az storage container create --account-name $customerstoragename -n $customercontainer --auth-mode login
+az storage blob upload -f /tmp/$customerblob.json --account-name $customerstoragename --container-name $customercontainer --auth-mode login -n $customerblob
+access_token=$(az account get-access-token --resource https://$customerstoragename.blob.core.windows.net | jq -r .accessToken)
+curl https://$customerstoragename.blob.core.windows.net/$customercontainer/$customerblob -H "Authorization: Bearer $access_token" -H "x-ms-version:2020-04-08"
+
+#Below standlone app in temp compute
+wget https://github.com/SuriyaKalivardhan/extnpoc/blob/main/SimpleServer/app.py
+wget https://github.com/SuriyaKalivardhan/extnpoc/blob/main/requirements.txt
+pip install -r https://github.com/SuriyaKalivardhan/extnpoc/blob/main/requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8080
-curl http://20.252.250.72:8080/getembeddings/00c151b8-da3b-4209-8306-4d1b4e422c60/suriyak0customerstr/embedctr/embedblob
+
+curl http://20.252.250.72:8080/getembeddings/$customerumiclientid/$customerstoragename/$customercontainer/$customerblob
+curl https://suriyakaca3.calmsea-0bc0bdab.eastus2euap.azurecontainerapps.io/getembeddings/$customerumiclientid/$customerstoragename/$customercontainer/$customerblob
+curl https://suriyakaca3.calmsea-0bc0bdab.eastus2euap.azurecontainerapps.io/getips
+curl https://suriyakaca3.calmsea-0bc0bdab.eastus2euap.azurecontainerapps.io/gettoken/$customerumiclientid
