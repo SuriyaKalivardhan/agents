@@ -61,7 +61,7 @@
                         "minReplicas": 1
                     }
                 },
-                "workloadProfileName": "gpd4"
+                "workloadProfileName": "Consumption"
             }
         }
     ],

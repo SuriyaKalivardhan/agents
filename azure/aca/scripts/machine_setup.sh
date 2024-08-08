@@ -1,9 +1,10 @@
 #Replace the hostname and target resource/resourceid appropriately with the customer-setup.sh generated resources
 location=eastus2euap
-customerumi=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-customer/providers/Microsoft.ManagedIdentity/userAssignedIdentities/customer-umi
-customerumiclientid=e5303cce-e5e9-4ba8-82a9-490404ea011e
-customerstoragename=suriyak0customerstr
-computepublicip=20.252.226.104
+computepublicip=20.252.174.134
+customerumi=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-a-customer0/providers/Microsoft.ManagedIdentity/userAssignedIdentities/customer-umi
+customerumiclientid=8daf8ba1-f39e-4668-a690-ba03a92af804
+customerstoragename=suriyak0a0customer0str
+customeracasubnet=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourceGroups/suriyak-a-customer0/providers/Microsoft.Network/virtualNetworks/customer-vnet/subnets/customer-aca-subnet
 
 customercontainer=embedctr
 customerblob=embedblob
