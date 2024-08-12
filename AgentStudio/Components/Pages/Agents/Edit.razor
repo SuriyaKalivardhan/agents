@@ -1,0 +1,148 @@
+﻿@page "/Agents/edit"
+@using Azure.AI.OpenAI.Assistants
+@using Azure.AI.Runtime
+@inject AssistantsClient assistanceClient
+@inject NavigationManager NavigationManager
+@inject HttpClient http
+@inject IConfiguration Configuration;
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h4>Assistant</h4>
+<hr />
+@if (this.userTools is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Agent" OnValidSubmit="UpdateAgent" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Id:</label>
+                    <input type="text" disabled="true" name="Agent.Id" value="@Agent.Id" />                    
+                </div>                
+                <div class="mb-3">
+                    <label for="title" class="form-label">Name:</label>
+                    <InputText id="title" @bind-Value="Agent.Name" class="form-control" />
+                    <ValidationMessage For="() => Agent.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="Agent.Description" class="form-control" />
+                    <ValidationMessage For="() => Agent.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="instructions" class="form-label">Instructions:</label>
+                    <InputTextArea id="instructions" @bind-Value="Agent.Instructions" class="form-control" />
+                    <ValidationMessage For="() => Agent.Instructions" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="model" class="form-label">Model:</label>
+                    <InputText id="model" @bind-Value="Agent.Model" class="form-control" />
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Tools" class="form-label">Tools:</label>
+                    <InputSelect @bind-Value="Agent.UserFunctions" class="form-control">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Tools ...
+                        </option>
+                        @foreach (string userTool in this.userTools)
+                        {
+                            <option value=@userTool selected=@Agent.UserFunctions.Contains(@userTool)>@userTool</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="SystemTools" class="col-form-label-lg">System Tools:</label><br />
+
+                    <label for="CodeInterpretor" class="form-check-label">CodeInterpretor:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableCodeInterpretor" class="form-check-inline" />
+
+                    <label for="Memory" class="form-check-label">Memory:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableMemory" class="form-check-inline" />
+
+                    <label for="SemanticCaching" class="form-check-label">Semantic Caching:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableSemanticCaching" class="form-check-inline" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/Agents">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Agent? Agent { get; set; }
+
+    private IList<string> userTools;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Assistant assistant = await assistanceClient.GetAssistantAsync(this.Id);
+
+        if(assistant != null)
+        {
+            this.Agent = new Agent();
+            this.Agent.Name = assistant.Name;
+            this.Agent.Id = assistant.Id;
+            this.Agent.Description = assistant.Description;
+            this.Agent.Model = assistant.Model;
+            this.Agent.Instructions = assistant.Instructions;
+            IList<string> currentUserFunctions = new List<string>();
+            foreach(ToolDefinition toolDefinition in assistant.Tools)
+            {
+                if (toolDefinition is FunctionToolDefinition fDef)
+                {
+                    currentUserFunctions.Add(fDef.Name);
+                }
+            }
+            this.Agent.UserFunctions = currentUserFunctions.ToArray();
+        }
+
+        if (this.Agent is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        IList<string> temp = new List<string>();
+
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/tools";
+        UserFunctionTool[] userFunctions = await http.GetFromJsonAsync<UserFunctionTool[]>(url);
+
+        foreach (UserFunctionTool tool in userFunctions)
+        {
+            temp.Add(tool.Name);
+        }
+
+        userTools = temp;
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see https://aka.ms/RazorPagesCRUD.
+    public async Task UpdateAgent()
+    {
+        UpdateAssistantOptions options = new UpdateAssistantOptions();
+        options.Name = this.Agent.Name;
+        options.Instructions = this.Agent.Instructions;
+        options.Model = this.Agent.Model;
+        options.Description = this.Agent.Description;
+
+        await assistanceClient.UpdateAssistantAsync(this.Id, options);
+
+        NavigationManager.NavigateTo("/agents");
+    }
+}

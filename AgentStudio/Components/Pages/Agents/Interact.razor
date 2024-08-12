@@ -1,0 +1,87 @@
+﻿@page "/Agents/interact"
+@using Azure.AI.Runtime.Data
+@using Azure.AI.Runtime
+@inject NavigationManager NavigationManager
+@inject HttpClient httpClient
+@inject IConfiguration Configuration
+<PageTitle>Playground</PageTitle>
+
+<h1>Details</h1>
+    <h4>Agent</h4>
+    <EditForm method="post" Model="@conversation" OnValidSubmit="StartConversation" FormName="interact" Enhance>
+        <div class="row">
+            <div class="col-md-4">            
+                <div class="mb-3">
+                    <label for="title" class="form-label">Initial Message:</label>
+                    <InputTextArea id="title" @bind-Value="@conversation.Message" class="form-control" />
+                </div>
+                <div class="mb-3">
+                @if (threadId != null && runId != null)
+                {
+                    <a href="agents/runs/details?runId=@runId&threadId=@threadId">Details</a>
+                    <a href="agents/runs/timelineView?runId=@runId&threadId=@threadId">Timeline</a>
+                }
+                </div>        
+                <button class="btn btn-primary">Start Conversation</button>
+                <a href="/agents">Back to List</a>                  
+            </div>
+        </div>
+    </EditForm>
+
+
+@code {
+    [SupplyParameterFromForm]
+    public AgentConversation conversation { get; set; } = new();
+
+    private string threadId;
+    private string runId;
+
+    private Uri statusUrl;
+
+    private IQueryable<Agent>? assistants;
+
+    [SupplyParameterFromQuery]
+    public string Id { get; set; } 
+    
+    public string ThreadId { get; set; }
+
+    public async Task StartConversation()
+    {   
+        var url2 = string.Format(Configuration.GetConnectionString("ExtensionAPI") + "/agents/{0}/conversations", this.Id);
+
+        var response2 = await httpClient.PostAsJsonAsync(url2, conversation);
+
+        if (response2.StatusCode == System.Net.HttpStatusCode.Accepted)
+        {
+            statusUrl = response2.Headers.Location;
+        }
+
+        while (statusUrl != null)
+        {
+            OperationStatus opStatus = await httpClient.GetFromJsonAsync<OperationStatus>(statusUrl);
+
+            if (opStatus.customStatus != null)
+            {
+                runId = opStatus.customStatus.TargetRunId;
+                threadId = opStatus.customStatus.TargetThreadId;
+                break;
+            }
+            else
+            {
+                await Task.Delay(1000);
+            }
+        }
+    }
+    
+   
+
+    class OperationStatus
+    {
+        public string name { get; set; }
+        public string instanceId { get; set; }
+        public string runtimeStatus { get; set; }
+        public AgentMessage input { get; set; }
+        public AgentMessage customStatus { get; set; }
+        public AgentMessage output { get; set; }
+    }
+}

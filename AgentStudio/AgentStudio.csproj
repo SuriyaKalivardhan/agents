@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\enterprise.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\enterprise.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0-beta.2" />
+    <PackageReference Include="Azure.AI.OpenAI.Assistants" Version="1.0.0-beta.4" />
+    <PackageReference Include="Microsoft.AspNet.WebPages" Version="3.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UserFunction\Azure.AI.Runtime.Host.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Components\Pages\Agents\imgs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\Aggregator.jpg" />
+    <EmbeddedResource Include="wwwroot\Custom.jpg" />
+    <None Include="wwwroot\Custom.jpg.pptm" />
+    <EmbeddedResource Include="wwwroot\Dense.jpg" />
+    <EmbeddedResource Include="wwwroot\Relay.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="wwwroot\Selector.jpg" />
+  </ItemGroup>
+
+</Project>

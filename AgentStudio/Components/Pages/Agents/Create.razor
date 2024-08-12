@@ -1,0 +1,155 @@
+﻿@page "/agents/create"
+@inject AssistantsClient assistantClient
+@inject HttpClient http;
+@inject AzureOpenAIClient openAIClient;
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@using Azure.AI.OpenAI
+@using Azure.AI.OpenAI.Assistants
+@using OpenAI.VectorStores
+@using Azure.AI.Runtime;
+@using AgentStudio.Components.Models;
+
+<PageTitle>Create</PageTitle>
+@if (userTools == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>Create</h1>
+
+    <h4>Agent</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Agent" OnValidSubmit="AddAgent" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="Agent.Name" class="form-control" />
+                    <ValidationMessage For="() => Agent.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="Agent.Description" class="form-control" />
+                    <ValidationMessage For="() => Agent.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Instructions" class="form-label">Instructions:</label>
+                    <InputTextArea id="Instructions" @bind-Value="Agent.Instructions" class="form-control" />
+                    <ValidationMessage For="() => Agent.Instructions" class="text-danger" />
+                </div>            
+                <div class="mb-3">
+                    <label for="Models" class="form-label">Models:</label>
+                    <InputSelect @bind-Value="Agent.Model" List class="form-control">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Models ...
+                        </option>
+                        <option value="DRIAssistant" selected="@false">
+                            DRIAssistant
+                        </option>
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="VectorIndex" class="form-label">VectorIndexes:</label>
+                    <InputSelect @bind-Value="Agent.Indexes" class="form-control">
+                        <option value="" selected="@true">
+                            Select Indexes ...
+                        </option>
+                        @foreach (MLIndex index in this.indexes)
+                        {
+                            string text = string.IsNullOrEmpty(index.Name) ? index.Id : index.Name;
+                            <option value=@index.Id>@text</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Tools" class="col-form-label-lg">User Tools:</label>
+                    <InputSelect @bind-Value="Agent.UserFunctions" class="form-control">
+                        <option value="" selected="@true">
+                            Select Tools ...
+                        </option>
+                        @foreach (string userTool in this.userTools)
+                        {
+                            <option value=@userTool>@userTool</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.UserFunctions" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="SystemTools" class="col-form-label-lg">System Tools:</label><br />
+
+                    <label for="CodeInterpretor" class="form-check-label">CodeInterpretor:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableCodeInterpretor" class="form-check-inline" />
+
+                    <label for="Memory" class="form-check-label">Memory:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableMemory" class="form-check-inline" />
+
+                    <label for="SemanticCaching" class="form-check-label">Semantic Caching:</label>
+                    <InputCheckbox @bind-Value="Agent.EnableSemanticCaching" class="form-check-inline" />
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </EditForm>
+        </div>
+    </div>
+
+    <div>
+        <a href="/agents">Back to List</a>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    public Agent Agent { get; set; } = new();
+
+    private IList<string> userTools { get; set; }
+    
+    private IQueryable<MLIndex> indexes;    
+    
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddAgent()
+    {        
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/agents";
+        await http.PostAsJsonAsync(url, this.Agent);
+
+        NavigationManager.NavigateTo("/agents");
+    }     
+
+    protected override async Task OnInitializedAsync()
+    {   
+        IList<MLIndex> responseList = new List<MLIndex>();
+
+#pragma warning disable OPENAI001
+        VectorStoreClient vsClient = openAIClient.GetVectorStoreClient();
+
+        await foreach (VectorStore vectorStore in vsClient.GetVectorStoresAsync())
+        {
+            responseList.Add(new MLIndex
+                {
+                    Id = vectorStore.Id,
+                    Name = vectorStore.Name,
+                    Status = vectorStore.Status.ToString()
+                });
+        }
+
+        indexes = responseList.AsQueryable();
+
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/tools";
+        UserFunctionTool[] userFunctions = await http.GetFromJsonAsync<UserFunctionTool[]>(url);
+
+        List<string> tools = new List<string>();
+
+        foreach (UserFunctionTool tool in userFunctions)
+        {
+            tools.Add(tool.Name);
+        }
+
+        userTools = tools;
+
+        
+    }    
+}

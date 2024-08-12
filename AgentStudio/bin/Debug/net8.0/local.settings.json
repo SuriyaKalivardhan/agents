@@ -1,0 +1,13 @@
+{
+    "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    // "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "FUNCTIONS_INPROC_NET8_ENABLED": "1",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AZURE_OPENAI_ENDPOINT": "https://aoai-eus-dogfood.openai.azure.com/",
+    "AZURE_OPENAI_KEY": "7d919ea59e85474591f60e31e4ff44ce",
+    "BING_SEARCH_ENDPOINT": "https://api.bing.microsoft.com/v7.0/search",
+    "BING_SEARCH_KEY": "fc03b7d5fff34d7a92ef24d4aef4e7d9"
+  }
+}

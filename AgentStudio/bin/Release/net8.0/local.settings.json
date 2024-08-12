@@ -1,0 +1,11 @@
+{
+    "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    // "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "FUNCTIONS_INPROC_NET8_ENABLED": "1",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AZURE_OPENAI_ENDPOINT": "https://aoai-eus-dogfood.openai.azure.com/",
+    "AZURE_OPENAI_KEY": "7d919ea59e85474591f60e31e4ff44ce"
+  }
+}

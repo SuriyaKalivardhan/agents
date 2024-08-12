@@ -1,0 +1,66 @@
+﻿@page "/agents/runs"
+@inject HttpClient http
+@inject AssistantsClient assistantClient
+@inject NavigationManager NavigationManager;
+@inject IConfiguration Configuration;
+@using AgentStudio.Components.Models
+@using Azure
+@using Azure.AI.OpenAI.Assistants
+@using System.Web
+@using Azure.AI.Runtime
+@using Microsoft.AspNetCore.Components.QuickGrid;
+@attribute [StreamRendering]
+
+<PageTitle>Agent Run</PageTitle>
+
+<h1>Runs</h1>
+
+@if (runs == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <QuickGrid Items="runs" Pagination="pagination">
+        <PropertyColumn Property="@(p => p.RunId)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.ThreadId)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.RunStatus)" Sortable="true" />
+        <TemplateColumn Context="agentRun">            
+            <a href="@($"agents/runs/timelineView?runId={agentRun.RunId}&threadId={agentRun.ThreadId}")">View</a>             
+        </TemplateColumn>
+    </QuickGrid>
+
+    <Paginator State="pagination" />
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string Id { get; set; }
+    
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private IQueryable<AgentRun>? runs;    
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering
+        var url = string.Format(Configuration.GetConnectionString("ExtensionAPI") + "/agents/{0}/conversations", this.Id);
+
+        IList<AgentRun> listRuns = new List<AgentRun>();
+
+        AgentConversation[] conversations = await http.GetFromJsonAsync<AgentConversation[]>(url);
+
+        foreach(AgentConversation conversation in conversations)
+        {
+            listRuns.Add(
+                new AgentRun
+                {
+                    RunId = conversation.RunId,
+                    ThreadId = conversation.ThreadId,
+                    RunStatus = conversation.Status              
+                }
+            );
+        }
+        runs = listRuns.AsQueryable();
+    }    
+}

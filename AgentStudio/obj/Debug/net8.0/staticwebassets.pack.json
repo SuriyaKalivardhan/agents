@@ -1,0 +1,65 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\AgentStudio.bundle.scp.css",
+      "PackagePath": "staticwebassets\\AgentStudio.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Aggregator.jpg",
+      "PackagePath": "staticwebassets\\Aggregator.jpg"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Custom.jpg",
+      "PackagePath": "staticwebassets\\Custom.jpg"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Custom.jpg.pptm",
+      "PackagePath": "staticwebassets\\Custom.jpg.pptm"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Dense.jpg",
+      "PackagePath": "staticwebassets\\Dense.jpg"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Relay.jpg",
+      "PackagePath": "staticwebassets\\Relay.jpg"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\Selector.jpg",
+      "PackagePath": "staticwebassets\\Selector.jpg"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AgentStudio.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.AgentStudio.props",
+      "PackagePath": "build\\AgentStudio.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.AgentStudio.props",
+      "PackagePath": "buildMultiTargeting\\AgentStudio.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.AgentStudio.props",
+      "PackagePath": "buildTransitive\\AgentStudio.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

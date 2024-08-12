@@ -1,0 +1,184 @@
+﻿@page "/agents/createGraph"
+@inject AssistantsClient assistantClient
+@inject HttpClient http
+@inject AzureOpenAIClient openAIClient
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@using Azure
+@using Azure.AI.OpenAI
+@using Azure.AI.OpenAI.Assistants
+@using OpenAI.VectorStores
+@using Azure.AI.Runtime;
+
+
+<PageTitle>Create</PageTitle>
+@if (agents == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>Create</h1>
+
+    <h4>Agent Graph</h4>
+    <hr />
+
+     
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Agent" OnValidSubmit="AddAgent" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                <div class="mb-3">                                                                                        
+                     <label for="name" class="form-label">Name:</label>
+                     <InputText id="name" @bind-Value="Agent.Name" class="form-control"/>                                                             
+                    <ValidationMessage For="() => Agent.Name" class="text-danger" />            
+                </div>                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputTextArea id="description" @bind-Value="Agent.Description" class="form-control" />
+                    <ValidationMessage For="() => Agent.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Models" class="form-label">Models:</label>
+                    <InputSelect @bind-Value="Agent.Model" List class="form-control">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Models ...
+                        </option>
+                        <option value="DRIAssistant" selected="@true">
+                            DRIAssistant
+                        </option>
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Agents" class="form-label">Agents:</label>
+                    <InputSelect @bind-Value="Agent.Agents" class="form-control">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Agents ...
+                        </option>
+                        @foreach (string agent in this.agents)
+                        {
+                            <option value=@agentNameToId[agent]>@agent</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Agents" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Kind" class="form-label">Kind:</label>
+                    <InputSelect @bind-Value="Agent.Kind" class="form-control" onselect="">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Kind ...
+                        </option>
+                        @foreach (string kind in this.kind)
+                        {
+                            <option value=@kind>@kind</option>
+                        }
+                    </InputSelect>                    
+                    <ValidationMessage For="() => Agent.Kind" class="text-danger" />                                        
+                 </div>
+                <div class="mb-3">
+                    <label for="Tools" class="form-label">Tools:</label>
+                    <InputSelect @bind-Value="Agent.UserFunctions" class="form-control">
+                        <option value="" selected="@true">
+                            Select Tools ...
+                        </option>
+                        @foreach (string userTool in this.userTools)
+                        {
+                            <option value=@userTool selected="@Agent.UserFunctions.Contains(@userTool)">@userTool</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="Instructions" class="form-label">Instructions:</label>
+                    <InputTextArea id="Instructions" @bind-Value="Agent.Instructions" class="form-control" />
+                    <ValidationMessage For="() => Agent.Instructions" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </EditForm>
+        </div>
+        <div class="col-md-4">
+            <img src=" ..\..\Relay.jpg" class="accordion-header" />
+        </div>
+    </div>
+
+    <div>
+        <a href="/agents">Back to List</a>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    public AgentGraph Agent { get; set; } = new();
+
+    private IList<string> agents;
+    private IList<string> kind;
+    private IDictionary<string, string> agentNameToId;
+    private IList<string> userTools { get; set; }
+        
+    // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
+    public async Task AddAgent()
+    {
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/agentGraph";
+
+        await http.PostAsJsonAsync(url, this.Agent);        
+
+        NavigationManager.NavigateTo("/agents");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        kind = new List<string>();
+        kind.Add("Relay");
+        kind.Add("Aggregator");
+        kind.Add("Selector");
+        kind.Add("Dense");
+        kind.Add("Custom");
+
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/tools";
+        UserFunctionTool[] userFunctions = await http.GetFromJsonAsync<UserFunctionTool[]>(url);
+
+        List<string> tools = new List<string>();
+
+        foreach (UserFunctionTool tool in userFunctions)
+        {
+            tools.Add(tool.Name);
+        }
+
+        userTools = tools;
+
+        agentNameToId = new Dictionary<string, string>();
+
+        Response<PageableList<Assistant>> response = await assistantClient.GetAssistantsAsync();
+        if (response.Value != null)
+        {
+            List<string> temp  = new List<string>();
+
+            foreach (Assistant assistant in response.Value)
+            {
+                temp.Add(assistant.Name);
+                agentNameToId[assistant.Name] = assistant.Id;
+            }
+            agents = temp;
+        }        
+    }
+
+    /*
+     *
+     * <div class="mb-3">
+                    <label for="Tools" class="form-label">Agents:</label>
+                    <InputSelect @bind-Value="Agent.Agents" class="form-control">
+                        <option value="" selected="@false" disabled="@true">
+                            Select Agents ...
+                        </option>
+                        @foreach (string agent in this.agents)
+                            {
+                            <option value=@agentNameToId[agent]>@agent</option>
+                    }
+                    </InputSelect>
+                    <ValidationMessage For="() => Agent.Model" class="text-danger" />
+     </div>
+
+    */
+}

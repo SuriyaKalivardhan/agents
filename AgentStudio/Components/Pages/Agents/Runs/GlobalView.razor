@@ -1,0 +1,136 @@
+﻿@page "/agents/runs/timelineView"
+@using Azure.AI.OpenAI.Assistants
+@using Azure.AI.Runtime
+@using System.Text
+@inject HttpClient http
+@inject AssistantsClient assistanceClient;
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+<PageTitle>Timeline View</PageTitle>
+
+<h1>Agent Graph View</h1>
+<hr />
+
+@if (this.agentEvents is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{    
+    <b>RunId:</b><a href="@($"agents/runs/details?runId={@RunId}&threadId={@ThreadId}")">@RunId</a><br />                 
+    <b>ThreadId:</b><a href="@($"agents/threads/details?threadId={@ThreadId}")">@ThreadId</a><br />             
+    
+    <b>Status:</b> @threadRun.Status.ToString()
+    @if(this.threadRun.LastError != null)
+    {
+        <h4>LastError: @threadRun.LastError.Message</h4>
+    }
+    
+    <div class="row">
+        @for(int i = 0; i < this.participatingAgentsName.Count; ++i)
+        {
+            string participatingAgentName = this.participatingAgentsName[i];
+            string participantThreadId = this.participatingAgentsThread[i];
+
+            <div class="col-md-2">
+                <a href="@($"agents/threads/details?threadId={participantThreadId}")"><b>@participatingAgentName</b></a>             
+            </div>        
+        }
+    </div class="row">
+    <hr />
+        
+        @foreach (AgentEvent agentEvent in this.agentEvents)
+        {
+            <div class="row">
+             @for(int i = 0;i < this.participatingAgents.Count; ++i)
+             {
+                @if(this.participatingAgents[i] == agentEvent.OriginatingAgentId)
+                {
+                    <div class="col-md-2">
+                        <textarea readonly="true" rows="5" cols="40" style="font-size:12px">
+                            @agentEvent.Request
+                        </textarea>
+                    </div>
+                }
+                else if(this.participatingAgents[i] == agentEvent.TargetAgentId)
+                {
+                    <div class="col-md-2">
+                        <a style="font-size:12px" href="@($"agents/runs/timelineView?runId={@agentEvent.TargetAgentRunId}&threadId={@agentEvent.TargetAgentThreadId}&back={@NavigationManager.Uri}")">Details</a>                        
+                        <textarea readonly="true" rows="5" cols="40" style="font-size:12px;font-style:italic">
+                            @agentEvent.Response
+                        </textarea>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-2">                       
+                    </div>
+                }
+             }
+            </div class="row">
+        }
+    
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string RunId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string ThreadId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string Back { get; set; }
+
+    private ThreadRun threadRun;
+
+    private IQueryable<AgentEvent> agentEvents;
+    private IList<string> participatingAgents;
+    private IList<string> participatingAgentsName;
+    private IList<string> participatingAgentsThread;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.RefreshStateAsync();       
+    }
+
+    private async Task RefreshStateAsync()
+    {
+        this.threadRun = await assistanceClient.GetRunAsync(
+            this.ThreadId,
+            this.RunId);
+
+        List<AgentEvent> temp = new List<AgentEvent>();
+        this.participatingAgents = new List<string>();
+        this.participatingAgentsName = new List<string>();
+        this.participatingAgentsThread = new List<string>();
+
+        // Simulate asynchronous loading to demonstrate streaming rendering
+        var url = string.Format(Configuration.GetConnectionString("ExtensionAPI") + "/agentEvents/{0}/{1}", this.ThreadId, this.RunId);
+
+        AgentEvent[] eventLog = await http.GetFromJsonAsync<AgentEvent[]>(url);
+
+        foreach (AgentEvent agentEvent in eventLog)
+        {            
+            if(!participatingAgents.Contains(agentEvent.OriginatingAgentId))
+            {
+                participatingAgents.Add(agentEvent.OriginatingAgentId);
+                participatingAgentsThread.Add(this.ThreadId);
+
+                Assistant assistant = await assistanceClient.GetAssistantAsync(agentEvent.OriginatingAgentId);
+                participatingAgentsName.Add(assistant.Name);
+            }
+
+            if(!participatingAgents.Contains(agentEvent.TargetAgentId))
+            {
+                participatingAgents.Add(agentEvent.TargetAgentId);
+                participatingAgentsThread.Add(agentEvent.TargetAgentThreadId);
+
+                Assistant assistant = await assistanceClient.GetAssistantAsync(agentEvent.TargetAgentId);
+                participatingAgentsName.Add(assistant.Name);
+            }
+        }
+
+        agentEvents = eventLog.AsQueryable();
+    }
+}

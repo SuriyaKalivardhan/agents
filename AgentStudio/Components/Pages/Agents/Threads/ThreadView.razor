@@ -1,0 +1,92 @@
+﻿@page "/agents/threads/details"
+@using Azure.AI.OpenAI.Assistants
+@using Azure.AI.Runtime
+@using System.Text
+@inject HttpClient http
+@inject AssistantsClient assistanceClient;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Thread</PageTitle>
+
+<h1>Details</h1>
+
+@if (this.messages is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{    
+    <h4>ThreadId: @ThreadId</h4>    
+    <a href="/agents">Back To Agents</a>
+    
+    <div class="row">
+            <div class="col-md-2">
+                <b>User</b>
+            </div>        
+            <div class="col-md-2">
+                <b>Agent</b>
+            </div>                
+    </div class="row">
+    <hr />    
+
+    @foreach (ThreadMessage message in this.messages.Reverse())
+    {    
+        <div class="row">
+            @if(message.Role == MessageRole.Assistant)
+            {
+                <div class="col-md-2">                       
+                </div>
+                <div class="col-md-2">
+                        <a style="font-size:12px" href="@($"agents/runs/details?runId={message.RunId}&threadId={ThreadId}")">Run</a>
+                        <textarea readonly="true" rows="5" cols="40" style="font-size:12px">
+                            @this.GetMessageContent(message)
+                        </textarea>
+                </div>                
+            }
+            else
+            {
+                <div class="col-md-2">
+                        <textarea readonly="true" rows="5" cols="40" style="font-size:12px">
+                            @this.GetMessageContent(message)
+                        </textarea>
+                </div>                
+                <div class="col-md-2">                       
+                </div>                
+            }                    
+        </div>
+    }
+    
+}
+
+@code
+{
+        [SupplyParameterFromQuery]
+        public string ThreadId { get; set; }
+
+        private IQueryable<ThreadMessage> messages;        
+
+        protected override async Task OnInitializedAsync()
+        {
+            await this.RefreshStateAsync();        
+        }
+
+        private string GetMessageContent(ThreadMessage message)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            foreach(MessageContent content in message.ContentItems)
+            {
+                if(content is MessageTextContent mtc)
+                {
+                    builder.AppendLine(mtc.Text);
+                }
+            }
+            return builder.ToString();
+        }
+
+    private async Task RefreshStateAsync()
+    {
+        var threadMessages = await assistanceClient.GetMessagesAsync(this.ThreadId);
+        this.messages = threadMessages.Value.AsQueryable();
+    }
+}

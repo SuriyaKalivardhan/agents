@@ -1,0 +1,141 @@
+﻿@page "/agents/runs/details"
+@using Azure.AI.OpenAI.Assistants
+@using Azure.AI.Runtime
+@using System.Text
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@inject HttpClient http
+@inject AssistantsClient assistanceClient;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Run Details</PageTitle>
+
+<h1>RunId: @RunId</h1>
+
+@if (this.runSteps is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{    
+    <b>ThreadId:</b><a href="@($"agents/threads/details?threadId={@ThreadId}")">@ThreadId</a><br />                 
+    <b>Status:</b> @threadRun.Status.ToString() <br />
+    @if(this.threadRun.LastError != null)
+    {
+        <h4>LastError: @threadRun.LastError.Message</h4>
+    }
+    <hr/>
+    
+        @foreach (RunStep runStep in this.runSteps.Reverse())
+        {
+            <div class="row">
+             @if(runStep.StepDetails is RunStepToolCallDetails callDetails)
+             {
+                foreach(RunStepToolCall toolCall in callDetails.ToolCalls)
+                {
+                    if (toolCall is RunStepFunctionToolCall fnToolCall)
+                    {
+                        <tr>
+                            <td>Function:<b>@fnToolCall.Name</b></td>
+                            <td width="30%"><pre>@this.PrettyJSON(@fnToolCall.Arguments)</pre></td>
+                            <td width="30%">
+                                <pre>@this.PrettyJSON(@fnToolCall.Output) </pre >
+                            </td >                            
+                        </tr>     
+                        <hr />
+                    }
+                    else if(toolCall is RunStepRetrievalToolCall rToolCall)
+                    {
+                       <div>Retrieval @rToolCall.Id </div>
+                        
+                       foreach(KeyValuePair<string, string> kvPair in rToolCall.Retrieval)
+                       {
+                           <div>@kvPair.Key = @kvPair.Value </div>                            
+                       }
+                    }
+                    else
+                    {
+                        <div>Tool: @toolCall.ToString()</div>
+                    }
+                }
+            }
+            else if(runStep.StepDetails is RunStepMessageCreationDetails mDetails)
+            { 
+                <tr>
+                    <td><u>Message Generation</u></td>
+                    <td width="30%"><b>@messages[mDetails.MessageCreation.MessageId]</b></td>                    
+                </tr>                                                       
+            }
+            else 
+            {
+                <div>Step:@runStep.Id @runStep.StepDetails.ToString() </div>                
+            }            
+            </div class="row">    
+        }
+    
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string RunId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string ThreadId { get; set; }
+
+    private IQueryable<RunStep> runSteps;
+    private IDictionary<string, string> messages;
+    private ThreadRun threadRun;    
+
+    private string PrettyJSON(string json)
+    {        
+        var converted = JsonConvert.DeserializeObject(json);
+
+        if (converted != null)
+        {
+            return JsonConvert.SerializeObject(converted, Formatting.Indented);
+        }
+        else
+        {
+            return json;
+        }        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.RefreshStateAsync();        
+    }
+
+    private async Task RefreshStateAsync()
+    {
+        this.messages = new Dictionary<string, string>();
+
+        this.threadRun = await assistanceClient.GetRunAsync(
+            this.ThreadId,
+            this.RunId);
+
+        var runs = await assistanceClient.GetRunStepsAsync(
+            this.ThreadId,
+            this.RunId);
+
+        foreach(RunStep runStep in runs.Value)
+        {
+            if(runStep.StepDetails is RunStepMessageCreationDetails mDetails)
+            {
+                ThreadMessage message = await assistanceClient.GetMessageAsync(
+                    this.ThreadId,
+                    mDetails.MessageCreation.MessageId);
+                StringBuilder messageContent = new StringBuilder();
+                foreach(MessageContent content in message.ContentItems)
+                {
+                    if(content is MessageTextContent mtContent)
+                    {
+                        messageContent.AppendLine(mtContent.Text);
+                        messages[mDetails.MessageCreation.MessageId] = mtContent.Text;
+                    }
+                }
+                messages[mDetails.MessageCreation.MessageId] = messageContent.ToString();
+            }
+        }
+        this.runSteps = runs.Value.AsQueryable();        
+    }
+}

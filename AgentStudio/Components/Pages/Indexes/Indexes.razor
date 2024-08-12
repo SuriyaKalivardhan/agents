@@ -1,0 +1,78 @@
+﻿@page "/indexes"
+@inject HttpClient http
+@inject AzureOpenAIClient openAIClient;
+@using AgentStudio.Components.Models
+@using Azure
+@using Azure.AI.OpenAI
+@using Azure.AI.OpenAI.Assistants
+@using OpenAI.VectorStores
+@using Azure.AI.Runtime
+@using Microsoft.AspNetCore.Components.QuickGrid;
+@attribute [StreamRendering]
+
+<PageTitle>Indexes</PageTitle>
+
+<h1>Indexes</h1>
+
+@if (indexes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>
+        <a href="indexes/create">Create New</a>
+    </p>
+
+    <p>
+        <input type="search" @bind="nameFilter" @bind:event="oninput" />
+    </p>
+
+    <QuickGrid Items="indexes" Pagination="pagination">
+        <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Status)" Sortable="true" />        
+
+        <TemplateColumn Context="index">
+            <a href="@($"agents/edit?id={index.Id}")">Edit</a> |
+            <a href="@($"agents/details?id={index.Id}")">Details</a> |
+            <a href="@($"agents/delete?id={index.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+
+    <Paginator State="pagination" />
+}
+
+@code {
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private string nameFilter = string.Empty;
+    private IQueryable<MLIndex> indexes;
+    private IQueryable<MLIndex> filteredIndexes
+    {
+        get
+        {
+            return this.indexes.Where(m => m.Name!.Contains(nameFilter));
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IList<MLIndex> responseList = new List<MLIndex>();
+
+     #pragma warning disable OPENAI001
+        VectorStoreClient vsClient = openAIClient.GetVectorStoreClient();        
+
+        await foreach (VectorStore vectorStore in vsClient.GetVectorStoresAsync())
+        {
+            responseList.Add(new MLIndex
+            {
+                Id = vectorStore.Id,
+                Name = vectorStore.Name,
+                Status = vectorStore.Status.ToString()
+            });  
+        }
+
+        indexes = responseList.AsQueryable();
+    }
+}

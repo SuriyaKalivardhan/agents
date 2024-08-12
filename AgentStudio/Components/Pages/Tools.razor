@@ -1,0 +1,64 @@
+﻿@page "/Tools"
+@inject HttpClient http
+@inject IConfiguration Configuration
+@using Azure.AI.OpenAI.Assistants
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@using Azure.AI.Runtime
+@attribute [StreamRendering]
+
+<PageTitle>Tools</PageTitle>
+
+<h1>Tools</h1>
+
+
+@if (userFunctions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="ac-textBlock" style="">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th width="30%">Description</th>
+                <th width="30%">Parameters</th>                
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var function in userFunctions)
+            {
+                <tr>
+                    <td><b>@function.Name</b></td>
+                    <td width="30%">@function.Description</td>
+                    <td width="30%">  <pre> @function.ParameterJSON </pre> </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+
+@code {
+    private UserFunctionTool[]? userFunctions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering        
+        var url = Configuration.GetConnectionString("ExtensionAPI") + "/tools";
+        userFunctions = await http.GetFromJsonAsync<UserFunctionTool[]>(url);        
+
+        //Fix the parameter JSON into a parameter text
+        foreach(UserFunctionTool functionTool in userFunctions)
+        {
+            this.FixParameterJson(functionTool);
+        }
+    }
+
+    private void FixParameterJson(UserFunctionTool functionTool)
+    {
+        functionTool.ParameterJSON = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(functionTool.ParameterJSON), Formatting.Indented); 
+    }
+}

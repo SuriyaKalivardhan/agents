@@ -1,0 +1,181 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\kraman\\source\\repos\\AgentStudio\\AgentStudio.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\kraman\\source\\repos\\AgentStudio\\AgentStudio.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\AgentStudio.csproj",
+        "projectName": "AgentStudio",
+        "projectPath": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\AgentStudio.csproj",
+        "packagesPath": "C:\\Users\\kraman\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\kraman\\source\\repos\\AgentStudio\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\kraman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://microsoftit.pkgs.visualstudio.com/_packaging/Marketing/nuget/v3/index.json": {},
+          "https://microsoftit.pkgs.visualstudio.com/_packaging/MicrosoftIT/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\kraman\\source\\repos\\UserFunction\\Azure.AI.Runtime.Host.csproj": {
+                "projectPath": "C:\\Users\\kraman\\source\\repos\\UserFunction\\Azure.AI.Runtime.Host.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Azure.AI.OpenAI": {
+              "target": "Package",
+              "version": "[2.0.0-beta.2, )"
+            },
+            "Azure.AI.OpenAI.Assistants": {
+              "target": "Package",
+              "version": "[1.0.0-beta.4, )"
+            },
+            "Microsoft.AspNet.WebPages": {
+              "target": "Package",
+              "version": "[3.3.0, )"
+            },
+            "Microsoft.AspNetCore.Components.QuickGrid": {
+              "target": "Package",
+              "version": "[8.0.7, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\kraman\\source\\repos\\UserFunction\\Azure.AI.Runtime.Host.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\kraman\\source\\repos\\UserFunction\\Azure.AI.Runtime.Host.csproj",
+        "projectName": "Azure.AI.Runtime.Host",
+        "projectPath": "C:\\Users\\kraman\\source\\repos\\UserFunction\\Azure.AI.Runtime.Host.csproj",
+        "packagesPath": "C:\\Users\\kraman\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\kraman\\source\\repos\\UserFunction\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\kraman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://microsoftit.pkgs.visualstudio.com/_packaging/Marketing/nuget/v3/index.json": {},
+          "https://microsoftit.pkgs.visualstudio.com/_packaging/MicrosoftIT/nuget/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Azure.AI.OpenAI.Assistants": {
+              "target": "Package",
+              "version": "[1.0.0-beta.4, )"
+            },
+            "Microsoft.Azure.Functions.Worker.Extensions.Abstractions": {
+              "target": "Package",
+              "version": "[1.3.0, )"
+            },
+            "Microsoft.Azure.WebJobs.Extensions.DurableTask": {
+              "target": "Package",
+              "version": "[2.12.0, )"
+            },
+            "Microsoft.Azure.WebJobs.Extensions.OpenApi": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
+            "Microsoft.NET.Sdk.Functions": {
+              "target": "Package",
+              "version": "[4.4.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
