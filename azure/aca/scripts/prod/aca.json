@@ -1,0 +1,74 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "suffix": "0umiinj"
+    },
+    "parameters": {
+        "name": {
+            "type": "String",
+            "defaultValue": "[concat('suriyakapp', '-',  variables('suffix'))]"
+        },
+        "location": {
+            "type": "String",
+            "defaultValue": "eastus2euap"
+        },
+        "identity" :{
+            "type": "string"
+        },
+        "envid" :{
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.App/containerapps",
+            "apiVersion": "2024-02-02-preview",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "identity":{
+                "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                        "[parameters('identity')]":{}
+                    }
+            },
+            "kind": "containerapps",
+            "properties": {
+                "environmentId": "[parameters('envid')]",
+                "configuration": {
+                    "ingress": {
+                        "external": true,
+                        "transport": "Auto",
+                        "allowInsecure": true,
+                        "targetPort": 8765,
+                        "stickySessions": {
+                            "affinity": "none"
+                        }
+                    }
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "name": "suriyakapp1",
+                            "image": "docker.io/suriyakalivardhan/simpleserver:v2",
+                            "resources": {
+                                "cpu": 0.5,
+                                "memory": "1Gi"
+                            }
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1
+                    }
+                },
+                "workloadProfileName": "Consumption"
+            }
+        }
+    ],
+    "outputs": {
+        "fqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.App/containerapps', parameters('name'))).configuration.ingress.fqdn]"
+        }
+    }
+}
