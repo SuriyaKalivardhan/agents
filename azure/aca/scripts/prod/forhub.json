@@ -1,0 +1,101 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "suffix": "0"
+    },
+    "parameters": {
+        "name": {
+            "type": "String",
+            "defaultValue": "[concat('suriyakapp', '-',  variables('suffix'))]"
+        },
+        "location": {
+            "type": "String",
+            "defaultValue": "eastus2euap"
+        },
+        "infrasubnetid": {
+            "type": "string"
+        },
+        "customersubnetid": {
+            "type": "string"
+        },
+        "platcustomersubnet" :{
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.App/managedEnvironments",
+            "apiVersion": "2024-02-02-preview",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "internal.containerapps.host-type": "shared",
+                "internal.containerapps.resource-owner": "suriyak-test"
+            },
+            "properties": {
+                "workloadProfiles": [
+                    {
+                        "name": "Consumption",
+                        "workloadProfileType": "Consumption"
+                    }
+                ],
+                "vnetConfiguration": {
+                    "infrastructureSubnetId": "[parameters('infrasubnetid')]"
+                },
+                "firstPartyConfiguration": {
+                    "customerSubnetId": "[parameters('customersubnetid')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[parameters('platcustomersubnet')]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "platcustomersubnet" :{
+                        "type": "string"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "location": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "2023-11-01",
+                            "name": "string",
+                            "properties": {
+                                "addressPrefix": "10.10.10.0/24",
+                                "delegations": [
+                                    {
+                                        "id": "Microsoft.App/environments",
+                                        "name": "Microsoft.App/environments",
+                                        "properties": {
+                                            "serviceName": "Microsoft.App/environments"
+                                        },
+                                        "type": "Microsoft.App/environments"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
