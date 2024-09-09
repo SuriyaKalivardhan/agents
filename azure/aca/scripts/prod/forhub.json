@@ -31,11 +31,38 @@
         "platcustomersubnet": {
             "type": "string"
         },
-        "platcustomersubnetcidr":{
+        "platcustomersubnetcidr": {
             "type": "string"
         }
     },
     "resources": [
+        {
+            "type": "Microsoft.App/managedEnvironments",
+            "apiVersion": "2024-02-02-preview",
+            "name": "[parameters('name')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "internal.containerapps.host-type": "shared",
+                "internal.containerapps.resource-owner": "suriyak-test"
+            },
+            "dependsOn": [
+                "test1"
+            ],
+            "properties": {
+                "workloadProfiles": [
+                    {
+                        "name": "Consumption",
+                        "workloadProfileType": "Consumption"
+                    }
+                ],
+                "vnetConfiguration": {
+                    "infrastructureSubnetId": "[parameters('infrasubnetid')]"
+                },
+                "firstPartyConfiguration": {
+                    "customerSubnetId": "[parameters('customersubnetid')]"
+                }
+            }
+        },
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2022-09-01",
