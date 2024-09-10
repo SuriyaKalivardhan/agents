@@ -6,12 +6,13 @@ customeracasubnet=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourceGr
 
 location='eastus2euap'
 commonHoBoSubscription='6a6fff00-4464-4eab-a6b1-0b533c7202e0' #'921496dc-987f-410f-bd57-426eb2611356'
-platcustomersubnetcidr='10.0.4.0/24'
+platcustomersubnetcidr='10.0.6.0/24'
 
 platformsub=$(cut -d'/' -f3 <<<$platformnetwork)
 platformrg=$(cut -d'/' -f5 <<<$platformnetwork)
 platformvnet=$(cut -d'/' -f9 <<<$platformnetwork)
 customersubnetname=$(cut -d'/' -f11 <<<$customeracasubnet)
+platformcustomernsg=$customersubnetname-nsg
 platcustomersubnet=$platformnetwork/subnets/$customersubnetname
 commonHoBoResourcegroup=$(cut -d'/' -f5 <<<$customeracasubnet)-chobov2
 
@@ -35,4 +36,4 @@ SkipAutoDeleteTill=$(date -d "+100 days" +"%Y-%m-%d")
 az group create -n $commonHoBoResourcegroup --tags owner=$username SkipAutoDeleteTill=$SkipAutoDeleteTill
 rgid=$(az group show -n $commonHoBoResourcegroup --query id -o tsv)
 
-az group deployment create -f forhub.json --parameters platformsub=$platformsub platformrg=$platformrg platformvnet=$platformvnet platcustomersubnet=$customersubnetname name=$customersubnetname platcustomersubnetcidr=$platcustomersubnetcidr location=$location infrasubnetid=$platcustomersubnet customersubnetid=$customeracasubnet
+az group deployment create -f forhub.json --parameters platformsub=$platformsub platformrg=$platformrg platformvnet=$platformvnet platcustomersubnet=$customersubnetname name=$customersubnetname platcustomersubnetcidr=$platcustomersubnetcidr platformcustomernsg=$platformcustomernsg location=$location infrasubnetid=$platcustomersubnet customersubnetid=$customeracasubnet 

@@ -33,6 +33,9 @@
         },
         "platcustomersubnetcidr": {
             "type": "string"
+        },
+        "platformcustomernsg" : {
+            "type": "string"
         }
     },
     "resources": [
@@ -80,6 +83,9 @@
                             "type": "Microsoft.Network/virtualNetworks/subnets",
                             "apiVersion": "2023-11-01",
                             "name": "[concat(parameters('platformvnet'), '/', parameters('platcustomersubnet'))]",
+                            "dependsOn": [
+                                "[parameters('platformcustomernsg')]"
+                            ],
                             "properties": {
                                 "addressPrefix": "[parameters('platcustomersubnetcidr')]",
                                 "delegations": [
@@ -87,6 +93,46 @@
                                         "name": "Delegation for test1",
                                         "properties": {
                                             "serviceName": "Microsoft.App/environments"
+                                        }
+                                    }
+                                ],"networkSecurityGroup": {
+                                    "id":"[resourceId(parameters('platformsub'), parameters('platformrg'), 'Microsoft.Network/networkSecurityGroups', parameters('platformcustomernsg'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/networkSecurityGroups",
+                            "apiVersion": "2023-11-01",
+                            "name": "[parameters('platformcustomernsg')]",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "securityRules": [
+                                    {
+                                        "name": "DenyInternetInbound",
+                                        "properties": {
+                                            "access": "Deny",
+                                            "description": "Deny Inbound from Internet",                                            
+                                            "destinationAddressPrefix": "*",
+                                            "destinationPortRange": "*",
+                                            "direction": "Inbound",
+                                            "priority": 4095,
+                                            "protocol": "*",
+                                            "sourceAddressPrefix": "Internet",
+                                            "sourcePortRange": "*"
+                                        }
+                                    },
+                                    {
+                                        "name": "DenyInternetOutbound",
+                                        "properties": {
+                                            "access": "Deny",
+                                            "description": "Deny Outbound to Internet",
+                                            "destinationAddressPrefix": "Internet",
+                                            "destinationPortRange": "*",
+                                            "direction": "Outbound",
+                                            "priority": 4096,
+                                            "protocol": "*",
+                                            "sourceAddressPrefix": "*",
+                                            "sourcePortRange": "*"
                                         }
                                     }
                                 ]
