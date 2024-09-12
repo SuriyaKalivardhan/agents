@@ -12,7 +12,7 @@ rg=$(cut -d'/' -f5 <<<$customerumi)
 
 sudo apt-get update -y
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-sudo apt-get install tcptraceroute bc jq python3.10-venv -y
+sudo apt-get install dnsutils tcptraceroute bc jq python3.10-venv -y
 wget http://www.vdberg.org/~richard/tcpping
 sudo cp tcpping /usr/bin
 sudo chmod 755 /usr/bin/tcpping

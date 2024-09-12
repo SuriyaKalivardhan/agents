@@ -4,16 +4,17 @@ customeracasubnetid=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resource
 
 location='eastus2euap'
 commonHoBoSubscription='921496dc-987f-410f-bd57-426eb2611356'
-platcustomersubnetcidr='10.1.0.0/24'
+platcustomersubnetcidr='10.4.0.0/24'
 
 platformsub=$(cut -d'/' -f3 <<<$platformnetwork)
 platformrg=$(cut -d'/' -f5 <<<$platformnetwork)
 platformvnet=$(cut -d'/' -f9 <<<$platformnetwork)
-customersubnetname=$(cut -d'/' -f11 <<<$customeracasubnetid)
+customersubnetname=suriyak0customer3-aca-subnet4
+#$(cut -d'/' -f11 <<<$customeracasubnetid)
 platformcustomernsg=$customersubnetname-nsg
 platcustomersubnetid=$platformnetwork/subnets/$customersubnetname
 commonHoBoResourcegroup=$(cut -d'/' -f5 <<<$customeracasubnetid)-chobov2
-acaenvname=$(cut -d'/' -f5 <<<$customeracasubnetid)-acaenv
+acaenvname=$(cut -d'/' -f5 <<<$customeracasubnetid)-acaenv-4
 
 if [ -z $1 ] || [ -z $2 ] || [ -z $3 ]; then
     echo "Using default location, subscription and resource group"

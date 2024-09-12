@@ -56,12 +56,10 @@
                     }
                 ],
                 "vnetConfiguration": {
-                    "infrastructureSubnetId": "[parameters('infrasubnetid')]",
-                    "internal": true
+                    "infrastructureSubnetId": "[parameters('infrasubnetid')]"
                 },
                 "firstPartyConfiguration": {
-                    "customerSubnetId": "[parameters('customersubnetid')]",
-                    "pullImageViaEnvironmentSubnet" : true
+                    "customerSubnetId": "[parameters('customersubnetid')]"
                 }
             }
         },
