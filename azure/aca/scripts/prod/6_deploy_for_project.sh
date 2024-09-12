@@ -7,3 +7,9 @@ commonHoBoSubscription='921496dc-987f-410f-bd57-426eb2611356'
 
 name=$(cut -d'/' -f9 <<<$acaenvid)-4
 az group deployment create -f forproject.json  --parameters name=$name identity=$customerumi envid=$acaenvid location=$location
+
+#Run these inside the ACA instance for sidecar access
+#echo $IDENTITY_ENDPOINT
+#echo $IDENTITY_HEADER
+#customerumiclientid=1c72b109-734c-4c2f-be1d-4f014f3813b2
+#curl "http://localhost:42356/msi/token?resource=https://vault.azure.net&api-version=2019-08-01&client_id=1c72b109-734c-4c2f-be1d-4f014f3813b2" -H "x-identity-header: 428f4729-655a-4f8b-ad52-5cfe8ebfa5d4"
