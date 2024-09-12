@@ -1,13 +1,10 @@
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "variables": {
-        "suffix": "0"
-    },
     "parameters": {
         "name": {
             "type": "String",
-            "defaultValue": "[concat('suriyakapp', '-',  variables('suffix'))]"
+            "defaultValue": "customerenv"
         },
         "location": {
             "type": "String",
@@ -49,7 +46,7 @@
                 "internal.containerapps.resource-owner": "suriyak-test"
             },
             "dependsOn": [
-                "test1"
+                "platformsubtemplatedep"
             ],
             "properties": {
                 "workloadProfiles": [
@@ -59,17 +56,19 @@
                     }
                 ],
                 "vnetConfiguration": {
-                    "infrastructureSubnetId": "[parameters('infrasubnetid')]"
+                    "infrastructureSubnetId": "[parameters('infrasubnetid')]",
+                    "internal": true
                 },
                 "firstPartyConfiguration": {
-                    "customerSubnetId": "[parameters('customersubnetid')]"
+                    "customerSubnetId": "[parameters('customersubnetid')]",
+                    "pullImageViaEnvironmentSubnet" : true
                 }
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2022-09-01",
-            "name": "test1",
+            "name": "platformsubtemplatedep",
             "subscriptionId": "[parameters('platformsub')]",
             "resourceGroup": "[parameters('platformrg')]",
             "properties": {
@@ -90,7 +89,7 @@
                                 "addressPrefix": "[parameters('platcustomersubnetcidr')]",
                                 "delegations": [
                                     {
-                                        "name": "Delegation for test1",
+                                        "name": "Delegation for Customer",
                                         "properties": {
                                             "serviceName": "Microsoft.App/environments"
                                         }

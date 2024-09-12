@@ -37,7 +37,7 @@ az network nsg rule create --nsg-name $nsgname -n AllowCorpInbound --priority 40
 az network nsg rule create --nsg-name $nsgname -n DenyInternetInbound --priority 4095  --access Deny --protocol '*' --source-address-prefixes Internet --destination-address-prefixes '*' --destination-port-ranges '*' --direction Inbound
 az network nsg rule create --nsg-name $nsgname -n DenyInternetOutbound --priority 4096  --access Deny --protocol '*' --source-address-prefixes '*' --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound
 
-az network vnet subnet create --vnet-name $vnetname -n $subnetname --address-prefixes 10.0.0.0/24
+az network vnet subnet create --vnet-name $vnetname -n $subnetname --address-prefixes 10.0.0.0/24 --nsg $nsgname
 subnetnameid=$(az network vnet subnet show --vnet-name $vnetname -n $subnetname --query id -o tsv)
 
 #https://learn.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest#az-vm-create

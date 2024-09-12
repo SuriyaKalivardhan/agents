@@ -89,8 +89,8 @@ az network vnet subnet create --vnet-name $vnetname -n $acasubnet --address-pref
 acasubnetid=$(az network vnet subnet show --vnet-name $vnetname -n $acasubnet --query id -o tsv)
 
 echo location=$location
-echo computepublicip=$computepublicip
+echo customeracasubnetid=$acasubnetid
 echo customerumi=$umiid
 echo customerumiclientid=$umiclientid
+echo computepublicip=$computepublicip
 echo customerstoragename=$storagename
-echo customeracasubnet=$acasubnetid

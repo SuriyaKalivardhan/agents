@@ -1,12 +1,10 @@
 #Replace the hostname and target resource/resourceid appropriately with the customer-setup.sh generated resources
 location=eastus2euap
-computepublicip=40.74.157.231
-customerumi=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-customer2/providers/Microsoft.ManagedIdentity/userAssignedIdentities/suriyak0customer2-umi
-customerumiclientid=2e4a2b18-67d9-4bfe-b8ef-4004b4f31500
-customerstoragename=suriyak0customer2str
-customeracasubnet=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourceGroups/suriyak-customer2/providers/Microsoft.Network/virtualNetworks/suriyak0customer2-vnet/subnets/suriyak0customer2-aca-subnet
-
-
+customeracasubnetid=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourceGroups/suriyak-customer3/providers/Microsoft.Network/virtualNetworks/suriyak0customer3-vnet/subnets/suriyak0customer3-aca-subnet
+customerumi=/subscriptions/ea4faa5b-5e44-4236-91f6-5483d5b17d14/resourcegroups/suriyak-customer3/providers/Microsoft.ManagedIdentity/userAssignedIdentities/suriyak0customer3-umi
+customerumiclientid=1c72b109-734c-4c2f-be1d-4f014f3813b2
+computepublicip=20.252.225.253
+customerstoragename=suriyak0customer3str
 customercontainer=embedctr
 customerblob=embedblob
 sub=$(cut -d'/' -f3 <<<$customerumi)
@@ -38,3 +36,8 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8080
+
+#Run from anywhere or locally to get the embeddings
+#curl http://$computepublicip:8080/getips
+#curl http://$computepublicip:8080/gettoken/$customerumiclientid
+#curl http://$computepublicip:8080/getembeddings/$customerumiclientid/$customerstoragename/$customercontainer/$customerblob
