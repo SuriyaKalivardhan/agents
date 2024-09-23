@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspaceName": {
+        "type": "string"
+      },
+      "location": {
+        "type": "string"
+      },      
+      "umi0id": {
+        "type": "string"
+      },
+      "umi1id": {
+        "type": "string"
+      },
+      "primaryUserAssignedIdentity": {
+        "type": "string"
+      },
+      "storageAccountId": {
+        "type": "string"
+      },
+      "keyVaultId": {
+        "type": "string"
+      }
+    },
+    "resources": [ 
+      {
+        "type": "Microsoft.MachineLearningServices/workspaces",
+        "apiVersion": "2024-04-01",
+        "name": "[parameters('workspaceName')]",
+        "identity": {
+          "type": "UserAssigned",
+          "userAssignedIdentities" :{
+            "[parameters('umi0id')]":{},
+            "[parameters('umi1id')]":{}
+          }
+        },
+        "location": "[parameters('location')]",
+        "kind": "Hub",
+        "properties": {
+          "friendlyName": "[parameters('workspaceName')]",
+          "storageAccount": "[parameters('storageAccountId')]",
+          "keyVault": "[parameters('keyVaultId')]",
+          "primaryUserAssignedIdentity": "[parameters('primaryUserAssignedIdentity')]"
+        }
+      }
+    ]
+  }

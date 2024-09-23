@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspaceName": {
+        "type": "string"
+      },
+      "location": {
+        "type": "string"
+      },      
+      "umi0id": {
+        "type": "string"
+      },
+      "umi1id": {
+        "type": "string"
+      },
+      "primaryUserAssignedIdentity": {
+        "type": "string"
+      },
+      "hubResourceId": {
+        "type": "string"
+      }
+    },
+    "resources": [ 
+      {
+        "type": "Microsoft.MachineLearningServices/workspaces",
+        "apiVersion": "2024-04-01",
+        "name": "[parameters('workspaceName')]",
+        "identity": {
+          "type": "UserAssigned",
+          "userAssignedIdentities" :{
+            "[parameters('umi0id')]":{},
+            "[parameters('umi1id')]":{}
+          }
+        },
+        "location": "[parameters('location')]",
+        "kind": "Project",
+        "properties": {
+          "friendlyName": "[parameters('workspaceName')]",
+          "primaryUserAssignedIdentity": "[parameters('primaryUserAssignedIdentity')]",
+          "hubResourceId" :"[parameters('hubResourceId')]"
+        }
+      }
+    ]
+  }
