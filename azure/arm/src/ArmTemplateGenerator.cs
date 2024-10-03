@@ -80,23 +80,23 @@
                 tags);
         }
 
-        public static ArmTemplate CreateSubnetResource(
+        public static ArmSubResource<SubnetProperties> CreateSubnetResource(
             string virtualNetworkName,
             string name,
             string addressPrefix,
             List<string> dependsOn)
         {
-            ArmTemplate template = new ArmTemplate();
-
-            var subnetResource = new ArmSubResource<SubnetProperties>(
+            return new ArmSubResource<SubnetProperties>(
                 name: $"{virtualNetworkName}/{name}",
                 type: SubnetSettings.ResourceType,
                 apiVersion: SubnetSettings.ApiVersion,
                 properties: new SubnetProperties(addressPrefix, "Microsoft.App/environments"),
                 dependsOn: dependsOn);
+        }
 
-            template.Resources.Add(subnetResource);
-            return template;
+        public static string GetDependsOnString(string resourceType, string resourceName)
+        {
+            return $"[concat('{resourceType}/', '{resourceName}')]";
         }
     }
 }

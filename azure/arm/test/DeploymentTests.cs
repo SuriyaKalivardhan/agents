@@ -1,7 +1,6 @@
-using Newtonsoft.Json;
 using src;
 using System.Net;
-using System.Text;
+using System.Security.AccessControl;
 
 namespace test;
 
@@ -10,61 +9,67 @@ public class DeploymentTests
     HttpClient _client;
     private static Random random = new Random();
 
-    static readonly string BaseAddress = "http://localhost:33707";
-    static readonly string RequestPath = "/rag/v1.0/adminProcess/RAGTemplate";
-
-    static readonly string Region = "eastus2euap";
-    static readonly string ClientId = "9534e9ff-faa9-4f13-9279-287d7a00f600";
-    static readonly string Subscription = "ea4faa5b-5e44-4236-91f6-5483d5b17d14";
-    static readonly string ResourceGroup = "suriyakcus0test";
-
-    static readonly string DeploymentKey = "Deployment";
-    static readonly string TemplateKey = "Template";
-
     public DeploymentTests()
     {
         _client = new HttpClient();
-        _client.BaseAddress = new Uri(BaseAddress);
+        _client.BaseAddress = new Uri(InputConstants.BaseAddress);
     }
-
-    private static string RandomString(int length = 10)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
-    }
-
-    private static Dictionary<string, string> GetBaseInput()
-    {
-        return new Dictionary<string, string>
-        {
-            {"Subscription", Subscription},
-            {"ResourceGroup", ResourceGroup },
-            { "ClientId", ClientId}
-        };
-    }
-
-    private static StringContent? ConstructContent(ArmTemplate template)
-    {
-        var jsonString = JsonConvert.SerializeObject(template, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-        var inputDto = new AdminProcessDto();
-        inputDto.Inputs = GetBaseInput();
-        inputDto.Inputs.Add(DeploymentKey, RandomString());
-        inputDto.Inputs.Add(TemplateKey, jsonString);
-
-        var payload = System.Text.Json.JsonSerializer.Serialize(inputDto);
-        var content = new StringContent(payload, Encoding.UTF8, "application/json");
-        return content;
-    }
-
 
     [Fact]
-    public async Task SubnetDeployment()
+    public async Task CustomerSubnetDeployment()
     {
-        var subTemplate = ArmTemplateGenerator.CreateSubnetResource("custvnet0", "tests198", "172.16.198.0/24", new List<string>());
-        var content = ConstructContent(subTemplate);
+        var subTemplate = ArmTemplateGenerator.CreateSubnetResource("custvnet0", $"ctsub{InputConstants.PrefixId}", $"172.16.{InputConstants.PrefixId}.0/24", new List<string>());
 
-        var result = await _client.PostAsync(RequestPath, content);
+        ArmTemplate armTemplate = new ArmTemplate();
+        armTemplate.Resources.Add(subTemplate);
+        var content = TestUtilities.ConstructContent(armTemplate, DeploymentType.Customer);
+
+        var result = await _client.PostAsync(InputConstants.RequestPath, content);
+        Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
+        string resultContent = await result.Content.ReadAsStringAsync();
+        Assert.NotNull(resultContent);
+    }
+
+    [Fact]
+    public async Task InfraSubnetDeployment()
+    {
+        var subTemplate = ArmTemplateGenerator.CreateSubnetResource("infra-vnet0", $"itsub{InputConstants.PrefixId}", $"10.{InputConstants.PrefixId}.0.0/24", new List<string>());
+
+        ArmTemplate armTemplate = new ArmTemplate();
+        armTemplate.Resources.Add(subTemplate); 
+        var content = TestUtilities.ConstructContent(armTemplate, DeploymentType.Infra);
+
+        var result = await _client.PostAsync(InputConstants.RequestPath, content);
+        Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
+        string resultContent = await result.Content.ReadAsStringAsync();
+        Assert.NotNull(resultContent);
+    }
+
+    [Fact]
+    public async Task HoBoAppContainersAllDeployment()
+    {
+        string customerSubnetId = $"/subscriptions/{InputConstants.CustomerSubscription}/resourceGroups/{InputConstants.CustomerResourceGroup}/providers/Microsoft.Network/virtualNetworks/custvnet0/subnets/ctsub{InputConstants.PrefixId}";
+        string infraSubnetId = $"/subscriptions/{InputConstants.InfraSubscription}/resourceGroups/{InputConstants.InfraResourceGroup}/providers/Microsoft.Network/virtualNetworks/infra-vnet0/subnets/itsub{InputConstants.PrefixId}";
+        string envName = $"envthobo{InputConstants.PrefixId}";
+        string envId = $"/subscriptions/{InputConstants.HoBoSubscription}/resourceGroups/{InputConstants.HoBoResourceGroup}/providers/Microsoft.App/managedEnvironments/{envName}";
+        string appName = $"appthobo{InputConstants.PrefixId}";
+
+        var envTemplate = ArmTemplateGenerator.CreateApplicationEnvironmentResource(
+            InputConstants.Region, envName, ComputeConstants.WorkloadProfileType, infraSubnetId, customerSubnetId, false, TestUtilities.GetEnvironmentTags());
+        var appTemplate = ArmTemplateGenerator.CreateContainerApplicationResource(
+            InputConstants.Region, appName, envId, ComputeConstants.DataProxyPort, ComputeConstants.DataProxyContainerImage, ComputeConstants.WorkloadProfileType, null);
+
+        appTemplate.DependsOn = new List<string>()
+        {
+            ArmTemplateGenerator.GetDependsOnString(envTemplate.Type, envTemplate.Name)
+        };
+        ArmTemplate armTemplate = new ArmTemplate();
+        armTemplate.Resources.Add(envTemplate);
+        armTemplate.Resources.Add(appTemplate);
+
+        var content = TestUtilities.ConstructContent(armTemplate, DeploymentType.Hobo);
+
+        var result = await _client.PostAsync(InputConstants.RequestPath, content);
         Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
         string resultContent = await result.Content.ReadAsStringAsync();
         Assert.NotNull(resultContent);
